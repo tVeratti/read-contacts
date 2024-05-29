@@ -1,8 +1,10 @@
 const fs = require("node:fs");
 const jsdom = require("jsdom");
 
-const CONTACT_NAME_SELECTOR = '[data-cy="contact-row-display-name"]';
-const CONTACT_PHONE_SELECTOR = '[data-cy="contact-row-tel"]';
+const dataSelect = (selector) => `[data-cy="${selector}"]`;
+const CONTACT_SELECTOR = dataSelect("contact-row");
+const CONTACT_NAME_SELECTOR = dataSelect("contact-row-display-name");
+const CONTACT_PHONE_SELECTOR = dataSelect("contact-row-tel");
 
 const { JSDOM } = jsdom;
 
@@ -15,20 +17,25 @@ fs.readFile("./contacts.html", "utf8", (err, data) => {
   const dom = new JSDOM(data);
 
   // Query all titles and phone from given HTML
-  const contactTitles = queryText(dom, CONTACT_NAME_SELECTOR);
-  const contactPhones = queryText(dom, CONTACT_PHONE_SELECTOR).map((phone) =>
-    phone.replace("▪ ", "")
-  );
+  const contactElements = query(dom.window.document, CONTACT_SELECTOR);
 
-  // Combine titles and phone numbers into single objects within one array.
-  // This will make formatting the CSV file next much cleaner.
-  const contactsFull = [];
-  for (let i = 0; i < contactTitles.length; i++) {
-    contactsFull.push({ title: contactTitles[i], phone: contactPhones[i] });
-  }
+  const contacts = contactElements.map((el) => {
+    // Query the title
+    const title = query(el, CONTACT_NAME_SELECTOR)[0].textContent.replace(
+      /"/g,
+      "&quot;"
+    );
 
-  const csv = contactsFull.reduce((all, contact) => {
-    all += `${contact.title}, ${contact.phone}\n`;
+    // Query all phones
+    const phones = query(el, CONTACT_PHONE_SELECTOR).map((p) =>
+      removeFormat(p.textContent.replace("▪ ", ""))
+    );
+
+    return { title: removeFormat(title), phones };
+  });
+
+  const csv = contacts.reduce((all, contact) => {
+    all += `${contact.title}, ${contact.phones.join(", ")}\n`;
     return all;
   }, "Title, Phone\n");
 
@@ -39,7 +46,9 @@ fs.readFile("./contacts.html", "utf8", (err, data) => {
   });
 });
 
-const queryText = (dom, selector) =>
-  [...dom.window.document.querySelectorAll(selector)].map(
-    (el) => el.innerText || el.textContent
-  );
+const query = (el, selector) => {
+  console.log(selector);
+  return [...el.querySelectorAll(selector)];
+};
+
+const removeFormat = (text) => text.replace(/(\r\n|\n|\r)/gm, "").trim();

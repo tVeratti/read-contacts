@@ -1,0 +1,22 @@
+{
+  "name": "read-contacts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "read-contacts.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tVeratti/read-contacts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tVeratti/read-contacts/issues"
+  },
+  "homepage": "https://github.com/tVeratti/read-contacts#readme",
+  "dependencies": {
+    "jsdom": "^24.1.0"
+  }
+}
